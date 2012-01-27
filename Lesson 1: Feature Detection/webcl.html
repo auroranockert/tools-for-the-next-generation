@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>WebCL Platform and Device Information</title>
+		
+		<script src="../support/hydra.js"></script>
+		
+		<script type='application/javascript'>
+			function line(host, key, value) {
+				var k = document.createElement('strong')
+				
+				k.appendChild(document.createTextNode(key + ': '))
+				
+				host.appendChild(k)
+				host.appendChild(document.createTextNode(value))
+				host.appendChild(document.createElement('br'))
+			}
+			
+			function lineBool(host, key, value) {
+				line(host, key, value ? "Yes" : "No")
+			}
+			
+			function f() {
+				var hasDevices = false
+				
+				var result = document.createElement('div')
+				
+				var hydra = document.createElement('div')
+				
+				if (Hydra.supported) {
+					line(hydra, 'WebCL Supported', 'Yes (' + Hydra.provider + ')')
+				} else {
+					line(hydra, 'WebCL Supported', 'No')
+				}
+				
+				result.appendChild(hydra)
+				
+				var platforms = Hydra.getPlatformIDs()
+				
+				var platformList = document.createElement('ol')
+				
+				for (var i = 0; i < platforms.length; i++) {
+					var platform = platforms[i]
+					
+					var platformItem = document.createElement('li')
+					
+					var platformName = document.createElement('h2')
+					
+					platformName.appendChild(document.createTextNode(platform.getPlatformInfo(Hydra.PLATFORM_NAME)))
+					
+					platformItem.appendChild(platformName)
+					
+					line(platformItem, "Vendor", platform.getPlatformInfo(Hydra.PLATFORM_VENDOR))
+					line(platformItem, "Version", platform.getPlatformInfo(Hydra.PLATFORM_VERSION))
+					line(platformItem, "Profile", platform.getPlatformInfo(Hydra.PLATFORM_PROFILE))
+					line(platformItem, "Extensions", platform.getPlatformInfo(Hydra.PLATFORM_EXTENSIONS).split(' ').join(', '))
+					
+					
+					var deviceList = document.createElement('ol')
+					
+					var devices = platform.getDeviceIDs(Hydra.DEVICE_TYPE_ALL)
+					
+					platformItem.appendChild(deviceList)
+					
+					for (var j = 0; j < devices.length; j++) {
+						var device = devices[j]; hasDevices = true
+						
+						var deviceItem = document.createElement('li')
+						
+						var name = document.createElement('h2')
+						
+						name.appendChild(document.createTextNode(device.getDeviceInfo(Hydra.DEVICE_NAME)))
+						
+						deviceItem.appendChild(name)
+						
+						line(deviceItem, "Vendor", device.getDeviceInfo(Hydra.DEVICE_VENDOR))
+						line(deviceItem, "Version", device.getDeviceInfo(Hydra.DEVICE_VERSION))
+						line(deviceItem, "Profile", device.getDeviceInfo(Hydra.DEVICE_PROFILE))
+						line(deviceItem, "Extensions", device.getDeviceInfo(Hydra.DEVICE_EXTENSIONS).split(' ').join(', '))
+						
+						line(deviceItem, "Driver", device.getDeviceInfo(Hydra.DRIVER_VERSION))
+						
+						line(deviceItem, "Clock Frequency", device.getDeviceInfo(Hydra.DEVICE_MAX_CLOCK_FREQUENCY) + " MHz")
+						line(deviceItem, "Global Memory", (device.getDeviceInfo(Hydra.DEVICE_GLOBAL_MEM_SIZE) >> 20) + " MB")
+						line(deviceItem, "Local Memory", (device.getDeviceInfo(Hydra.DEVICE_LOCAL_MEM_SIZE) >> 10) + " kB")
+						
+						line(deviceItem, "Max Compute Units", device.getDeviceInfo(Hydra.DEVICE_MAX_COMPUTE_UNITS))
+						line(deviceItem, "Max Work Group Size", device.getDeviceInfo(Hydra.DEVICE_MAX_WORK_GROUP_SIZE))
+						
+						line(deviceItem, "Address Bits", device.getDeviceInfo(Hydra.DEVICE_ADDRESS_BITS))
+						
+						lineBool(deviceItem, "Available", device.getDeviceInfo(Hydra.DEVICE_AVAILABLE))
+						lineBool(deviceItem, "Compiler Available", device.getDeviceInfo(Hydra.DEVICE_COMPILER_AVAILABLE))
+						lineBool(deviceItem, "Little Endian", device.getDeviceInfo(Hydra.DEVICE_ENDIAN_LITTLE))
+						lineBool(deviceItem, "ECC Support", device.getDeviceInfo(Hydra.DEVICE_ERROR_CORRECTION_SUPPORT))
+						lineBool(deviceItem, "Image Support", device.getDeviceInfo(Hydra.DEVICE_IMAGE_SUPPORT))
+						
+						deviceList.appendChild(deviceItem)
+					}
+					
+					platformList.appendChild(platformItem)
+				}
+				
+				result.appendChild(platformList)
+				
+				if (hasDevices) {
+					result.appendChild(document.createTextNode('You have a number of OpenCL devices available, you are alright.'))
+				} else {
+					result.appendChild(document.createTextNode('Could not find any available OpenCL devices, you will not be able to execute OpenCL kernels.'))
+				}
+				
+				return result
+			}
+	    </script>
+	</head>
+	
+	<body onload="document.body.appendChild(f())">
+		<h1>WebCL Platform and Device Information</h1>
+	</body>
+</html>
